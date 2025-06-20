@@ -48,6 +48,5 @@ phases:
 artifacts:
   base-directory: k8s-out
   files:
-    - bankapp-deployment.yml
-    - bankapp-service.yaml
-    - bankapp-ingress.yml
+    - '**/*'
+
