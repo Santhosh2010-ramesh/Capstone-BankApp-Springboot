@@ -19,7 +19,7 @@ RUN mvn clean package -DskipTests=true
 # Stage 2: Run the Spring Boot app
 #--------------------------------------
 
-FROM eclipse-temurin:17-jre-alpine AS runner
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:17-alpine
 
 WORKDIR /app
 
