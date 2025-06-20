@@ -1,0 +1,53 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - echo Installing Docker...
+      - nohup /usr/local/bin/dockerd-entrypoint.sh &>/tmp/dockerd.log &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      - echo Docker is ready.
+
+      - echo Installing kubectl...
+      - curl -LO "https://dl.k8s.io/release/v1.29.1/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+
+      - echo Logging into Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
+
+      - echo Configuring kubeconfig for EKS...
+      - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
+
+  pre_build:
+    commands:
+      - echo Build started on `date`
+      - echo Compiling the application...
+      - mvn clean package -DskipTests
+
+  build:
+    commands:
+      - echo Building Docker image...
+      - docker build -t capstone_ecr .
+      - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+
+  post_build:
+    commands:
+      - echo Pushing Docker image to Amazon ECR...
+      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+
+      - echo Copying Kubernetes manifest files...
+      - mkdir -p k8s-out
+      - cp kubernetes/*.yml k8s-out/ || true
+      - cp kubernetes/*.yaml k8s-out/ || true
+      - ls -l k8s-out
+
+artifacts:
+  base-directory: k8s-out
+  files:
+    - bankapp-deployment.yml
+    - bankapp-service.yaml
+    - bankapp-ingress.yml
