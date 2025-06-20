@@ -1,5 +1,6 @@
+<<<<<<< HEAD
 ## End-to-End Bank Application Deployment using DevSecOps on AWS EKS
-- This is a multi-tier bank an application written in Java (Springboot).
+- This is my multi-tier bank an application written in Java (Springboot).
 
 ![Login diagram](images/login.png)
 ![Transactions diagram](images/transactions.png)
@@ -443,3 +444,6 @@ eksctl delete cluster --name=bankapp --region=us-west-1
 ```
 
 #
+=======
+# Capstone-BankApp-Springboot
+>>>>>>> 0e7d0e9a2571a1868ee57225c25ac63ce8e5a3b9
