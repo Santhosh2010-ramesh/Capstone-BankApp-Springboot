@@ -1,4 +1,4 @@
-# End-to-End Setup for Deploying Applications with ArgoCD and EKS
+# End-to-End Setup for Continous Integration and Deploying Applications with SonarQube Analysis, ArgoCD, Prometheus, Grafana and EKS.
 
 This README provides a complete step-by-step guide with all the commands required to set up ArgoCD on an AWS EKS cluster, deploy your applications, and configure GitOps.
 
