@@ -18,10 +18,12 @@ phases:
 
       - echo Logging into Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
+
+      - echo Installing SonarQube Scanner...
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
       - unzip -q sonar-scanner.zip
       - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
-      
+
       - echo Configuring kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
 
@@ -33,8 +35,9 @@ phases:
 
   build:
     commands:
-       - echo Running SonarQube Analysis on EC2-hosted SonarQube...
+      - echo Running SonarQube Analysis on EC2-hosted SonarQube...
       - sonar-scanner -Dsonar.projectKey=Capstone_Project -Dsonar.sources=. -Dsonar.host.url=http://52.87.101.241 -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+
       - echo Building Docker image...
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
@@ -42,15 +45,4 @@ phases:
   post_build:
     commands:
       - echo Pushing Docker image to Amazon ECR...
-      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
-
-      - echo Copying Kubernetes manifest files...
-      - mkdir -p k8s-out
-      - cp kubernetes/*.yml k8s-out/ || true
-      - cp kubernetes/*.yaml k8s-out/ || true
-      - ls -l k8s-out
-
-artifacts:
-  base-directory: k8s-out
-  files:
-    - '**/*'
+      - docker push 04771
