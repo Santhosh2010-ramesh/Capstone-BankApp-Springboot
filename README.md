@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 ## End-to-End Bank Application Deployment using DevSecOps on AWS EKS
 - This is my multi-tier bank an application written in Java (Springboot).
 
