@@ -20,6 +20,7 @@ phases:
       - curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
       - unzip sonar-scanner-cli.zip -d /opt
       - export PATH=$PATH:/opt/sonar-scanner-5.0.1.3006-linux/bin
+      - /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner --version
 
       - echo Logging into Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
@@ -31,11 +32,12 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Running SonarQube scan...
-      - sonar-scanner \
+      - /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
           -Dsonar.projectKey=Capstone_Project \
           -Dsonar.sources=. \
-          -Dsonar.host.url=http://52.87.101.241 \
+          -Dsonar.host.url=http://52.87.101.241:9000 \
           -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+
       - echo Compiling the application...
       - mvn clean package -DskipTests
 
