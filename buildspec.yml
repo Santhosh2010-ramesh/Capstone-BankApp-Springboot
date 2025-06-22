@@ -35,8 +35,8 @@ phases:
 
   build:
     commands:
-      - echo Running SonarQube Analysis on EC2-hosted SonarQube...
-      - sonar-scanner -Dsonar.projectKey=Capstone_Project -Dsonar.sources=. -Dsonar.java.binaries=target/classes -Dsonar.host.url=http://52.87.101.241 -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+      - echo Running SonarQube Analysis...
+      - ./sonar-analysis.sh
 
       - echo Building Docker image...
       - docker build -t capstone_ecr .
