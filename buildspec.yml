@@ -70,14 +70,7 @@ phases:
       - cp kubernetes/*.yaml k8s-out/ || true
       - ls -l k8s-out
 
-  # NEW DEPLOY PHASE
-  deploy:
-    commands:
-      - echo Deploying to EKS...
-      - kubectl apply -f kubernetes/bankapp-namespace.yaml
-      - kubectl apply -f kubernetes/bankapp-deployment.yml
-      - kubectl apply -f kubernetes/bankapp-service.yaml
-      - echo Deployment complete.
+
 
 artifacts:
   base-directory: k8s-out
