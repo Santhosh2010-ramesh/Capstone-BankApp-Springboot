@@ -42,11 +42,12 @@ phases:
       - curl -I http://52.87.101.241 || echo "SonarQube server might be unreachable!"
 
       - echo Running SonarQube analysis...
-      - /opt/sonar-scanner/bin/sonar-scanner \
-          -Dsonar.projectKey=Capstone_Project \
-          -Dsonar.sources=. \
-          -Dsonar.host.url=http://52.87.101.241 \
-          -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+      - >
+        /opt/sonar-scanner/bin/sonar-scanner
+        -Dsonar.projectKey=Capstone_Project
+        -Dsonar.sources=.
+        -Dsonar.host.url=http://52.87.101.241
+        -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
 
       - echo Compiling the application...
       - mvn clean package -DskipTests
