@@ -35,7 +35,7 @@ phases:
       - /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
           -Dsonar.projectKey=Capstone_Project \
           -Dsonar.sources=. \
-          -Dsonar.host.url=http://52.87.101.241:9000 \
+          -Dsonar.host.url=http://52.87.101.241 \
           -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
 
       - echo Compiling the application...
