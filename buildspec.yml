@@ -20,7 +20,7 @@ phases:
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
       - unzip -q sonar-scanner.zip
       - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
-      - echo "export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin" >> ~/.bashrc
+      - echo 'export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin' >> ~/.bashrc
 
   pre_build:
     commands:
@@ -29,19 +29,19 @@ phases:
 
       - echo Setting image tag and repo URI...
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo Image Tag: $IMAGE_TAG
+      - echo "Image Tag: $IMAGE_TAG"
       - REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr
 
       - echo Fetching container name from SSM...
       - CONTAINER_NAME=$(aws ssm get-parameter --name "/python-app/eks-python-deploy/container-name" --with-decryption --query "Parameter.Value" --output text)
-      - echo Fetched container name: $CONTAINER_NAME
+      - echo "Fetched container name: $CONTAINER_NAME"
 
       - echo Running SonarQube analysis...
-      - >
-        sonar-scanner
-        -Dsonar.projectKey=Capstone_Project
-        -Dsonar.sources=.
-        -Dsonar.host.url=http://52.87.101.241
+      - |
+        sonar-scanner \
+        -Dsonar.projectKey=Capstone_Project \
+        -Dsonar.sources=. \
+        -Dsonar.host.url=http://52.87.101.241 \
         -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
 
       - echo Compiling application...
