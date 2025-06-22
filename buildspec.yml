@@ -16,60 +16,58 @@ phases:
       - mv kubectl /usr/local/bin/
       - kubectl version --client
 
-      - echo Logging into Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
-
-      - echo Configuring kubeconfig for EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
-
-      - echo Installing Sonar Scanner...
-      - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-      - unzip sonar-scanner.zip
-      - mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
-      - export PATH=$PATH:/opt/sonar-scanner/bin
-      - echo "export PATH=$PATH:/opt/sonar-scanner/bin" >> ~/.bashrc
+      - echo Installing SonarScanner...
+      - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+      - unzip -q sonar-scanner.zip
+      - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+      - echo "export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin" >> ~/.bashrc
 
   pre_build:
     commands:
-      - echo Build started on `date`
-      - echo Started Pre Build Steps...
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
+
+      - echo Setting image tag and repo URI...
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo Image Tag: $IMAGE_TAG
+      - REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr
 
       - echo Fetching container name from SSM...
       - CONTAINER_NAME=$(aws ssm get-parameter --name "/python-app/eks-python-deploy/container-name" --with-decryption --query "Parameter.Value" --output text)
       - echo Fetched container name: $CONTAINER_NAME
 
-      - echo Testing connection to SonarQube server...
-      - curl -I http://52.87.101.241 || echo "SonarQube server might be unreachable!"
-
       - echo Running SonarQube analysis...
       - >
-        /opt/sonar-scanner/bin/sonar-scanner
+        sonar-scanner
         -Dsonar.projectKey=Capstone_Project
         -Dsonar.sources=.
         -Dsonar.host.url=http://52.87.101.241
         -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
 
-      - echo Compiling the application...
+      - echo Compiling application...
       - mvn clean package -DskipTests
 
   build:
     commands:
       - echo Building Docker image...
-      - docker build -t capstone_ecr .
-      - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+      - docker build -t ${REPO_URI}:${IMAGE_TAG} .
+      - docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:latest
 
   post_build:
     commands:
       - echo Pushing Docker image to Amazon ECR...
-      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+      - docker push ${REPO_URI}:${IMAGE_TAG}
+      - docker push ${REPO_URI}:latest
 
-      - echo Copying Kubernetes manifest files...
-      - mkdir -p k8s-out
-      - cp kubernetes/*.yml k8s-out/ || true
-      - cp kubernetes/*.yaml k8s-out/ || true
-      - ls -l k8s-out
+      - echo Updating Kubernetes deployment...
+      - sed -i "s|image: .*|image: ${REPO_URI}:${IMAGE_TAG}|" kubernetes/bankapp-deployment.yml
+
+      - echo Configuring kubeconfig...
+      - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
+
+      - echo Applying Kubernetes manifests...
+      - kubectl apply -f kubernetes/
 
 artifacts:
-  base-directory: k8s-out
   files:
-    - '**/*'
+    - kubernetes/*
