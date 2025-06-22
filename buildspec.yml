@@ -16,6 +16,11 @@ phases:
       - mv kubectl /usr/local/bin/
       - kubectl version --client
 
+      - echo Installing aws-iam-authenticator...
+      - curl -o aws-iam-authenticator https://amazon-eks.s3.us-east-1.amazonaws.com/1.29.0/2024-05-31/bin/linux/amd64/aws-iam-authenticator
+      - chmod +x aws-iam-authenticator
+      - mv aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
+
       - echo Logging into Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
 
@@ -34,8 +39,6 @@ phases:
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
 
-  post_build:
-    commands:
       - echo Pushing Docker image to Amazon ECR...
       - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
 
@@ -45,8 +48,22 @@ phases:
       - cp kubernetes/*.yaml k8s-out/ || true
       - ls -l k8s-out
 
+  post_build:
+    commands:
+      - echo Installing ArgoCD into EKS cluster...
+      - kubectl create namespace argocd || true
+      - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+      - echo Waiting for ArgoCD server deployment to be ready...
+      - kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
+
+      - echo Patching ArgoCD server service to NodePort...
+      - kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
+
+      - echo ArgoCD service status:
+      - kubectl get svc -n argocd
+
 artifacts:
   base-directory: k8s-out
   files:
     - '**/*'
-
