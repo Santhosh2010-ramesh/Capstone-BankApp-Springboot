@@ -31,6 +31,10 @@ phases:
   pre_build:
     commands:
       - echo Build started on `date`
+      
+      - echo Checking if SonarQube server is reachable...
+      - curl -v http://52.87.101.241/api/system/health || true
+      
       - echo Running SonarQube scan...
       - /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
           -Dsonar.projectKey=Capstone_Project \
