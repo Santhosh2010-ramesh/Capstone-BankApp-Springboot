@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: capstone-service
-  namespace: bankapp-namespace
+  #namespace: bankapp-namespace
 spec:
   selector:
     app: capstone
