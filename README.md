@@ -8,13 +8,14 @@
 ## Tech stack used in this project:
 - GitHub (Code)
 - Docker (Containerization)
-- Jenkins (CI)
-- OWASP (Dependency check)
 - SonarQube (Quality)
 - Trivy (Filesystem Scan)
 - ArgoCD (CD)
 - AWS EKS (Kubernetes)
 - Helm (Monitoring using grafana and prometheus)
+## Templates Used
+- CloudFormation
+- Terraform
   
 ### Steps to deploy:
 
@@ -25,16 +26,15 @@ sudo su
 ```
 #
 > [!Note]
-> This project will be implemented on North California region (us-west-1).
+> This project will be implemented on N.Virginia region (us-east-1).
 
-- <b>Create 1 Master machine on AWS (t2.medium) and 29 GB of storage.</b>
+- <b>Create 1 Master machine on AWS (t2.medium) and 20 GB of storage.</b>
 #
 - <b>Open the below ports in security group</b>
-![image](https://github.com/user-attachments/assets/4e5ecd37-fe2e-4e4b-a6ba-14c7b62715a3)
+https://us-east-1.console.aws.amazon.com/ec2/home?region=us-east-1#SecurityGroup:groupId=sg-0bd4d224fa1e72de4
 
 - <b id="EKS">Create EKS Cluster on AWS</b>
 - IAM user with **access keys and secret access keys**
-- AWSCLI should be configured (<a href="https://github.com/DevMadhup/DevOps-Tools-Installations/blob/main/AWSCLI/AWSCLI.sh">Setup AWSCLI</a>)
   ```bash
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   sudo apt install unzip
@@ -43,7 +43,7 @@ sudo su
   aws configure
   ```
 
-- Install **kubectl**(<a href="https://github.com/DevMadhup/DevOps-Tools-Installations/blob/main/Kubectl/Kubectl.sh">Setup kubectl </a>)
+- Install **kubectl**
   ```bash
   curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
   chmod +x ./kubectl
@@ -51,8 +51,7 @@ sudo su
   kubectl version --short --client
   ```
 
-- Install **eksctl**(<a href="https://github.com/DevMadhup/DevOps-Tools-Installations/blob/main/eksctl%20/eksctl.sh">Setup eksctl</a>)
-  ```bash
+- Install **eksctl**
   curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
   sudo mv /tmp/eksctl /usr/local/bin
   eksctl version
@@ -84,35 +83,6 @@ sudo su
                        --node-volume-size=29 \
                        --ssh-access \
                        --ssh-public-key=eks-nodegroup-key 
-  ```
-> [!Note]
->  Make sure the ssh-public-key "eks-nodegroup-key is available in your aws account"
-- <b>Install Jenkins</b>
-```bash
-sudo apt update -y
-sudo apt install fontconfig openjdk-17-jre -y
-
-sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
-  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-  
-echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
-  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
-  
-sudo apt-get update -y
-sudo apt-get install jenkins -y
-```
-
-- After installing Jenkins, change the default port of jenkins from 8080 to 8081. Because our bankapp application will be running on 8080.
-  - Open /usr/lib/systemd/system/jenkins.service file and change JENKINS_PORT environment variable 
-![image](https://github.com/user-attachments/assets/6320ae49-82d4-4ae3-9811-bd6f06778483)
-  - Reload daemon
-  ```bash
-  sudo systemctl daemon-reload 
-  ```
-  - Restart Jenkins
-  ```bash
-  sudo systemctl restart jenkins
   ```
 #
 
@@ -217,53 +187,20 @@ sudo apt-get install trivy -y
 ![image](https://github.com/user-attachments/assets/cffb6e1d-4838-483e-97e0-6851c204ab21)
 
 #
-- <b>Go to Jenkins and click on <mark> Manage Jenkins --> Plugins --> Available plugins</mark> install the below plugins:</b>
-  - OWASP
-  - SonarQube Scanner
-  - Docker
-  - Pipeline: Stage View
-#
-- <b id="Owasp">Configure OWASP, move to <mark>Manage Jenkins --> Plugins --> Available plugins</mark>b>
-![image](https://github.com/user-attachments/assets/da6a26d3-f742-4ea8-86b7-107b1650a7c2)
-
-- <b id="Sonar">After OWASP plugin is installed, Now move to <mark>Manage jenkins --> Tools</mark></b>
-![image](https://github.com/user-attachments/assets/3b8c3f20-202e-4864-b3b6-b48d7a604ee8)
-#
-- <b>Login to SonarQube server and create the credentials for jenkins to integrate with SonarQube</b>
+- <a>Login to SonarQube server and create the credentials for jenkins to integrate with SonarQube</b>
   - Navigate to <mark>Administration --> Security --> Users --> Token</mark>
   ![image](https://github.com/user-attachments/assets/86ad8284-5da6-4048-91fe-ac20c8e4514a)
   ![image](https://github.com/user-attachments/assets/6bc671a5-c122-45c0-b1f0-f29999bbf751)
   ![image](https://github.com/user-attachments/assets/e748643a-e037-4d4c-a9be-944995979c60)
 
 #
-- <b>Now, go to <mark> Manage Jenkins --> credentials</mark> and add Sonarqube credentials:</b>
-![image](https://github.com/user-attachments/assets/0688e105-2170-4c3f-87a3-128c1a05a0b8)
-#
-- <b>Go to <mark> Manage Jenkins --> Tools</mark> and search for SonarQube Scanner installations:</b>
-![image](https://github.com/user-attachments/assets/2fdc1e56-f78c-43d2-914a-104ec2c8ea86)
-#
-- <b>Go to <mark> Manage Jenkins --> credentials</mark> and add Docker credentials to push updated the updated docker image to dockerhub.</b>
-![image](https://github.com/user-attachments/assets/77402c9c-fc2f-4df7-9a06-09f3f4c38751)
 
-#
-- <b> Again, add Github credentials to push updated code from the pipeline:</b>
-![image](https://github.com/user-attachments/assets/4d0c1a47-621e-4aa2-a0b1-71927fcdaef4)
-> [!Note]
-> While adding github credentials add Personal Access Token in the password field.
-#
-- <b>Go to <mark> Manage Jenkins --> System</mark> and search for SonarQube installations:</b>
-![image](https://github.com/user-attachments/assets/ae866185-cb2b-4e83-825b-a125ec97243a)
-#
-- <b>Now again, Go to <mark> Manage Jenkins --> System</mark> and search for Global Trusted Pipeline Libraries:</b
-![image](https://github.com/user-attachments/assets/874b2e03-49b9-4c26-9b0f-bd07ce70c0f1)
-![image](https://github.com/user-attachments/assets/1ca83b43-ce85-4970-941d-9a819ce4ecfd)
-#
 - <b>Login to SonarQube server, go to <mark>Administration --> Webhook</mark> and click on create </b>
 ![image](https://github.com/user-attachments/assets/16527e72-6691-4fdf-a8d2-83dd27a085cb)
 ![image](https://github.com/user-attachments/assets/a8b45948-766a-49a4-b779-91ac3ce0443c)
 #
 
-#
+
 - <b> Go to Master Machine and add our own eks cluster to argocd for application deployment using cli</b>
   - <b>Login to argoCD from CLI</b>
   ```bash
@@ -287,10 +224,10 @@ sudo apt-get install trivy -y
 
   - <b>Add your cluster to argocd</b>
   ```bash
-  argocd cluster add Madhup@bankapp.us-west-1.eksctl.io --name bankapp-eks-cluster
+  argocd cluster add Capstone-Cluster .us-east-1.eksctl.io --name Capstone-cluster
   ```
   > [!Tip]
-  > Madhup@bankapp.us-west-1.eksctl.io --> This should be your EKS Cluster Name.
+  > Capstone-cluster.us-east-1.eksctl.io --> This should be your EKS Cluster Name.
 
  ![image](https://github.com/user-attachments/assets/1061fe66-17ec-47b7-9d2e-371f58d3fd90)
 
