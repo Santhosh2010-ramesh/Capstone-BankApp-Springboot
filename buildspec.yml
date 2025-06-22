@@ -27,6 +27,14 @@ phases:
       - echo Configuring kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
 
+      - echo Installing Trivy...
+      - apt-get update -y
+      - apt-get install wget apt-transport-https gnupg lsb-release -y
+      - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
+      - echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
+      - apt-get update -y
+      - apt-get install trivy -y
+
   pre_build:
     commands:
       - echo Build started on `date`
@@ -52,6 +60,9 @@ phases:
 
   post_build:
     commands:
+      - echo Scanning Docker image with Trivy...
+      - trivy image --no-progress 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest || echo "Trivy scan completed with warnings"
+
       - echo Pushing Docker image to Amazon ECR...
       - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
 
