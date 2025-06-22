@@ -36,8 +36,13 @@ phases:
   build:
     commands:
       - echo Running SonarQube Analysis...
-      - chmod +x sonar-analysis.sh
-      - ./sonar-analysis.sh
+      - |
+        #!/bin/bash
+        sonar-scanner \
+          -Dsonar.projectKey=New_Capstone \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=http://52.87.101.241:9000 \
+          -Dsonar.login=sqp_39d1f3d9519e997ef336a9887f58a289df734506
 
       - echo Building Docker image...
       - docker build -t capstone_ecr .
