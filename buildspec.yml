@@ -18,10 +18,10 @@ phases:
       - echo "Running SonarQube Analysis on EC2-hosted SonarQube..."
       - |
         sonar-scanner \
-          -Dsonar.projectKey=Capstone_Project \
+          -Dsonar.projectKey=E-commerce \
           -Dsonar.sources=. \
           -Dsonar.host.url=http://52.87.101.241 \
-          -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+          -Dsonar.login=sqp_03cf9b6a7c2243b636278204866434d8a5ff8337
       - echo "Build started on $(date)"
       - docker build -t ${REPO_URI}:${IMAGE_TAG} .
       - docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:latest
