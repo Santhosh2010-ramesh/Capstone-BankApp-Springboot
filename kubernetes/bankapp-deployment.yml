@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: capstone-deployment
-  namespace: bankapp-namespace
+  #namespace: bankapp-namespace
   labels:
     app: capstone
 spec:
