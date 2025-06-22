@@ -57,24 +57,24 @@ phases:
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
 
   post_build:
-  commands:
-    - echo Scanning Docker image with Trivy...
-    - trivy image --no-progress 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest || echo "Trivy scan completed with warnings"
+    commands:
+      - echo Scanning Docker image with Trivy...
+      - trivy image --no-progress 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest || echo "Trivy scan completed with warnings"
 
-    - echo Pushing Docker image to Amazon ECR...
-    - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+      - echo Pushing Docker image to Amazon ECR...
+      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
 
-    - echo Copying Kubernetes manifest files...
-    - mkdir -p k8s-out
-    - cp kubernetes/*.yml k8s-out/ || true
-    - cp kubernetes/*.yaml k8s-out/ || true
-    - ls -l k8s-out
+      - echo Copying Kubernetes manifest files...
+      - mkdir -p k8s-out
+      - cp kubernetes/*.yml k8s-out/ || true
+      - cp kubernetes/*.yaml k8s-out/ || true
+      - ls -l k8s-out
 
-    - echo Deploying to Kubernetes...
-    - kubectl apply -f kubernetes/bankapp-namespace.yaml
-    - kubectl apply -f kubernetes/bankapp-deployment.yml
-    - kubectl apply -f kubernetes/bankapp-service.yaml
-    - echo Deployment to Kubernetes complete.
+      - echo Deploying to Kubernetes...
+      - kubectl apply -f kubernetes/bankapp-namespace.yaml
+      - kubectl apply -f kubernetes/bankapp-deployment.yml
+      - kubectl apply -f kubernetes/bankapp-service.yaml
+      - echo Deployment to Kubernetes complete.
 
 
 
