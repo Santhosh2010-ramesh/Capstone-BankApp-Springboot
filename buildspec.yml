@@ -1,32 +1,41 @@
 version: 0.2
+
 phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
       - aws --version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
-      - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)'
-      - 'echo "Image Tag: $IMAGE_TAG"'
-      - 'REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr'
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo "Image Tag: $IMAGE_TAG"
+      - REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
       - unzip -q sonar-scanner.zip
       - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+
   build:
     commands:
-      - echo Running SonarQube Analysis on EC2-hosted SonarQube...
-      - sonar-scanner -Dsonar.projectKey=E-commerce -Dsonar.sources=. -Dsonar.host.url=http://52.87.101.241 -Dsonar.login=sqp_03cf9b6a7c2243b636278204866434d8a5ff8337
-      - 'echo "Build started on $(date)"'
-      - 'docker build -t ${REPO_URI}:${IMAGE_TAG} .'
-      - 'docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:latest'
+      - echo "Running SonarQube Analysis on EC2-hosted SonarQube..."
+      - |
+        sonar-scanner \
+          -Dsonar.projectKey=Capstone_Project \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=http://52.87.101.241 \
+          -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+      - echo "Build started on $(date)"
+      - docker build -t ${REPO_URI}:${IMAGE_TAG} .
+      - docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:latest
+
   post_build:
     commands:
-      - 'echo "Build completed on $(date)"'
-      - 'docker push ${REPO_URI}:${IMAGE_TAG}'
-      - 'docker push ${REPO_URI}:latest'
-      - 'echo "Updating Kubernetes deployment..."'
-      - 'sed -i "s|image: .*|image: ${REPO_URI}:${IMAGE_TAG}|" k8s/deployment.yaml'
-      - 'aws eks update-kubeconfig --region us-east-1 --name ecommerce-cluster'
-      - 'kubectl apply -f kubernetes/'
+      - echo "Build completed on $(date)"
+      - docker push ${REPO_URI}:${IMAGE_TAG}
+      - docker push ${REPO_URI}:latest
+      - echo "Updating Kubernetes deployment..."
+      - sed -i "s|image: .*|image: ${REPO_URI}:${IMAGE_TAG}|" kubernetes/bankapp-deployment.yml
+      - aws eks update-kubeconfig --region us-east-1 --name ecommerce-cluster
+      - kubectl apply -f kubernetes/
+
 artifacts:
   files:
     - kubernetes/*
