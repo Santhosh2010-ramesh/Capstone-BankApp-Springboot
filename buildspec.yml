@@ -37,16 +37,17 @@ phases:
     commands:
       - echo Running SonarQube Analysis...
       - |
-        #!/bin/bash
         sonar-scanner \
           -Dsonar.projectKey=New_Capstone \
           -Dsonar.sources=. \
+          -Dsonar.java.binaries=target/classes \
           -Dsonar.host.url=http://52.87.101.241:9000 \
           -Dsonar.login=sqp_39d1f3d9519e997ef336a9887f58a289df734506
 
       - echo Building Docker image...
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+
 
   post_build:
     commands:
