@@ -16,33 +16,31 @@ phases:
       - mv kubectl /usr/local/bin/
       - kubectl version --client
 
+      - echo Installing sonar-scanner...
+      - curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+      - unzip sonar-scanner-cli.zip -d /opt
+      - export PATH=$PATH:/opt/sonar-scanner-5.0.1.3006-linux/bin
+
       - echo Logging into Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
 
       - echo Configuring kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
 
-      - echo Installing Sonar Scanner CLI...
-      - curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-      - unzip sonar-scanner-cli.zip -d sonar-scanner-cli
-      - export PATH=$PATH:$PWD/sonar-scanner-cli/sonar-scanner-5.0.1.3006-linux/bin
-      - sonar-scanner --version
-
   pre_build:
     commands:
       - echo Build started on `date`
-      - echo Compiling the application...
-      - mvn clean package -DskipTests
-
-  build:
-    commands:
-      - echo Running SonarQube analysis...
+      - echo Running SonarQube scan...
       - sonar-scanner \
           -Dsonar.projectKey=Capstone_Project \
           -Dsonar.sources=. \
           -Dsonar.host.url=http://52.87.101.241 \
           -Dsonar.login=sqp_b25db21244d06591db52eb84baa795ebac8beb80
+      - echo Compiling the application...
+      - mvn clean package -DskipTests
 
+  build:
+    commands:
       - echo Building Docker image...
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
