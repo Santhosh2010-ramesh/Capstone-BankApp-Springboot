@@ -45,4 +45,15 @@ phases:
   post_build:
     commands:
       - echo Pushing Docker image to Amazon ECR...
-      - docker push 04771
+      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+
+      - echo Copying Kubernetes manifest files...
+      - mkdir -p k8s-out
+      - cp kubernetes/*.yml k8s-out/ || true
+      - cp kubernetes/*.yaml k8s-out/ || true
+      - ls -l k8s-out
+
+artifacts:
+  base-directory: k8s-out
+  files:
+    - '**/*'
