@@ -63,7 +63,6 @@ phases:
       - echo "ArgoCD service status:"
       - kubectl get svc -n argocd
 
-
 artifacts:
   base-directory: k8s-out
   files:
