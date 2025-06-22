@@ -214,10 +214,6 @@ sudo apt-get install trivy -y
 > [!Note]
 > Connection should be successful
 
-- Create BankApp-CI job
-![image](https://github.com/user-attachments/assets/17467b79-3110-470a-87a2-2bbfe197551b)
-![image](https://github.com/user-attachments/assets/51d79ab0-e1f4-4c4d-a778-0c28119f5da9)
-
 - Create BankApp-CD job, same as CI job.
 #
 - <b>Provide permission to docker socket so that docker build and push command do not fail</b>
