@@ -28,12 +28,10 @@ phases:
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
 
       - echo Installing Trivy...
-      - apt-get update -y
-      - apt-get install wget apt-transport-https gnupg lsb-release -y
-      - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
-      - echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
-      - apt-get update -y
-      - apt-get install trivy -y
+      - wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.1_Linux-64bit.tar.gz
+      - tar -zxvf trivy_0.50.1_Linux-64bit.tar.gz
+      - mv trivy /usr/local/bin/
+      - trivy --version
 
   pre_build:
     commands:
