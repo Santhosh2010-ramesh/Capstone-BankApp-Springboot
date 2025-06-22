@@ -60,8 +60,9 @@ phases:
       - echo Patching ArgoCD server service to NodePort...
       - kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 
-      - echo ArgoCD service status:
+      - echo "ArgoCD service status:"
       - kubectl get svc -n argocd
+
 
 artifacts:
   base-directory: k8s-out
