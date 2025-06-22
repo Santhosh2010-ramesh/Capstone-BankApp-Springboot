@@ -1,51 +1,32 @@
 version: 0.2
- 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
-    commands:
-      - echo Installing Docker...
-      - nohup /usr/local/bin/dockerd-entrypoint.sh &>/tmp/dockerd.log &
-      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
-      - echo Docker is ready.
- 
-      - echo Installing kubectl...
-      - curl -LO "https://dl.k8s.io/release/v1.29.1/bin/linux/amd64/kubectl"
-      - chmod +x kubectl
-      - mv kubectl /usr/local/bin/
-      - kubectl version --client
- 
-      - echo Logging into Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
- 
-      - echo Configuring kubeconfig for EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
- 
   pre_build:
     commands:
-      - echo Build started on `date`
-      - echo Compiling the application...
-      - mvn clean package -DskipTests
- 
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
+      - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)'
+      - 'echo "Image Tag: $IMAGE_TAG"'
+      - 'REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr'
+      - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+      - unzip -q sonar-scanner.zip
+      - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
   build:
     commands:
-      - echo Building Docker image...
-      - docker build -t capstone_ecr .
-      - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
- 
+      - echo Running SonarQube Analysis on EC2-hosted SonarQube...
+      - sonar-scanner -Dsonar.projectKey=E-commerce -Dsonar.sources=. -Dsonar.host.url=http://52.87.101.241 -Dsonar.login=sqp_03cf9b6a7c2243b636278204866434d8a5ff8337
+      - 'echo "Build started on $(date)"'
+      - 'docker build -t ${REPO_URI}:${IMAGE_TAG} .'
+      - 'docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:latest'
   post_build:
     commands:
-      - echo Pushing Docker image to Amazon ECR...
-      - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
- 
-      - echo Copying Kubernetes manifest files...
-      - mkdir -p k8s-out
-      - cp kubernetes/*.yml k8s-out/ || true
-      - cp kubernetes/*.yaml k8s-out/ || true
-      - ls -l k8s-out
- 
+      - 'echo "Build completed on $(date)"'
+      - 'docker push ${REPO_URI}:${IMAGE_TAG}'
+      - 'docker push ${REPO_URI}:latest'
+      - 'echo "Updating Kubernetes deployment..."'
+      - 'sed -i "s|image: .*|image: ${REPO_URI}:${IMAGE_TAG}|" k8s/deployment.yaml'
+      - 'aws eks update-kubeconfig --region us-east-1 --name ecommerce-cluster'
+      - 'kubectl apply -f kubernetes/'
 artifacts:
-  base-directory: k8s-out
   files:
-    - '**/*'
+    - kubernetes/*
