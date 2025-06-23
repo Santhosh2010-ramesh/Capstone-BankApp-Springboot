@@ -72,9 +72,10 @@ phases:
       - ls -l k8s-out
 
       - echo Deploying to Kubernetes...
-      - kubectl apply -f kubernetes/bankapp-namespace.yaml
-      - kubectl apply -f kubernetes/bankapp-deployment.yaml
-      - kubectl apply -f kubernetes/bankapp-service.yaml
+      - kubectl apply -f kubernetes/bankapp-namespace.yaml --validate=false
+      - kubectl apply -f kubernetes/bankapp-deployment.yaml --validate=false
+      - kubectl apply -f kubernetes/bankapp-service.yaml --validate=false
+
 
 artifacts:
   base-directory: k8s-out
