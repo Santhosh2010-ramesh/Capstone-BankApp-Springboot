@@ -1,5 +1,5 @@
 version: 0.2
-
+ 
 phases:
   install:
     runtime-versions:
@@ -9,36 +9,36 @@ phases:
       - nohup /usr/local/bin/dockerd-entrypoint.sh &>/tmp/dockerd.log &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
       - echo Docker is ready.
-
+ 
       - echo Installing kubectl...
       - curl -LO "https://dl.k8s.io/release/v1.29.1/bin/linux/amd64/kubectl"
       - chmod +x kubectl
       - mv kubectl /usr/local/bin/
       - kubectl version --client
-
+ 
       - echo Logging into Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
-
+ 
       - echo Installing SonarQube Scanner...
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
       - unzip -q sonar-scanner.zip
       - export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
-
+ 
       - echo Configuring kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
-
+ 
       - echo Installing Trivy...
       - wget https://github.com/aquasecurity/trivy/releases/download/v0.63.0/trivy_0.63.0_Linux-64bit.tar.gz
       - tar -xzf trivy_0.63.0_Linux-64bit.tar.gz
       - mv trivy /usr/local/bin/
       - trivy --version
-
+ 
   pre_build:
     commands:
       - echo Build started on `date`
       - echo Compiling the application...
       - mvn clean package -DskipTests
-
+ 
   build:
     commands:
       - echo Running SonarQube Analysis...
@@ -51,32 +51,26 @@ phases:
           -Dsonar.host.url=http://52.87.101.241:9000 \
           -Dsonar.login=sqp_39d1f3d9519e997ef336a9887f58a289df734506 || echo "SonarQube analysis failed, continuing..."
         set -e
-
+ 
       - echo Building Docker image...
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
-      
-
+ 
   post_build:
     commands:
       - echo Scanning Docker image with Trivy...
       - trivy image --no-progress 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest || echo "Trivy scan completed with warnings"
-
+ 
       - echo Pushing Docker image to Amazon ECR...
       - docker push 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
-
+ 
       - echo Copying Kubernetes manifest files...
       - mkdir -p k8s-out
       - cp kubernetes/*.yml k8s-out/ || true
       - cp kubernetes/*.yaml k8s-out/ || true
       - ls -l k8s-out
-
-      - echo Deploying to Kubernetes...
-      - kubectl apply -f kubernetes/bankapp-namespace.yaml --validate=false
-      - kubectl apply -f kubernetes/bankapp-deployment.yaml --validate=false
-      - kubectl apply -f kubernetes/bankapp-service.yaml --validate=false
-
-
+ 
+ 
 artifacts:
   base-directory: k8s-out
   files:
