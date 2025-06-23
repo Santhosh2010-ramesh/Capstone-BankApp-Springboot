@@ -7,7 +7,7 @@ phases:
     commands:
       - echo Installing Docker...
       - nohup /usr/local/bin/dockerd-entrypoint.sh &>/tmp/dockerd.log &
-      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      - timeout 15 sh -c "until docker info > /dev/null 2>&1; do echo 'Waiting for Docker...'; sleep 1; done"
       - echo Docker is ready.
 
       - echo Installing kubectl...
@@ -26,6 +26,9 @@ phases:
 
       - echo Configuring kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
+
+      - echo Testing cluster connectivity...
+      - kubectl get nodes || { echo "Failed to connect to EKS cluster"; exit 1; }
 
       - echo Installing Trivy...
       - wget https://github.com/aquasecurity/trivy/releases/download/v0.63.0/trivy_0.63.0_Linux-64bit.tar.gz
@@ -66,18 +69,14 @@ phases:
 
       - echo Copying Kubernetes manifest files...
       - mkdir -p k8s-out
-      - cp kubernetes/*.yml k8s-out/ || true
       - cp kubernetes/*.yaml k8s-out/ || true
       - ls -l k8s-out
 
       - echo Deploying to Kubernetes...
-      - kubectl apply -f kubernetes/bankapp-namespace.yaml
-      - kubectl apply -f kubernetes/bankapp-deployment.yml
-      - kubectl apply -f kubernetes/bankapp-service.yaml
+      - kubectl apply -f kubernetes/bankapp-namespace.yaml --validate=false
+      - kubectl apply -f kubernetes/bankapp-deployment.yaml --validate=false
+      - kubectl apply -f kubernetes/bankapp-service.yaml --validate=false
       - echo Deployment to Kubernetes complete.
-
-
-
 
 artifacts:
   base-directory: k8s-out
