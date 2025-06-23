@@ -1,5 +1,5 @@
 # Use a full JDK image with Maven + Java 17
-FROM eclipse-temurin:17-jdk-alpine
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:17-alpine
 
 # Maintainer
 LABEL maintainer="Santhosh <santhoshramesh2010@gmail.com>"
