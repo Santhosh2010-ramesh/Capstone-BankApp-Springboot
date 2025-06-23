@@ -2,7 +2,7 @@
 # Stage 1: Build the Spring Boot app
 #----------------------------------
 
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:17
+FROM public.ecr.aws/docker/library/maven:3.9.7-eclipse-temurin-17
 
 LABEL maintainer="Santhosh R <santhosh1020@gmail.com>"
 LABEL app="bankapp"
