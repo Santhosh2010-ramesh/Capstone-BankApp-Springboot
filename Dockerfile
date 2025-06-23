@@ -16,7 +16,7 @@ COPY . /app
 RUN chmod +x mvnw
 
 # Build the app (skip tests)
-RUN ./mvnw clean install -DskipTests
+RUN ./mvn clean install -DskipTests
 
 # Expose port 8080
 EXPOSE 8080
