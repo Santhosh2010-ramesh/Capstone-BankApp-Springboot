@@ -1,33 +1,37 @@
 #----------------------------------
-# Stage 1: Build the Spring Boot app
+# Stage 1
 #----------------------------------
 
-FROM public.ecr.aws/docker/library/maven:3.9.7-eclipse-temurin-17
+# Import docker image with maven installed
+FROM maven:3.8.3-openjdk-17 as builder 
 
-LABEL maintainer="Santhosh R <santhosh1020@gmail.com>"
-LABEL app="bankapp"
+# Add maintainer, so that new user will understand who had written this Dockerfile
+MAINTAINER Madhup Pandey<madhuppandey2908@gmail.com>
 
-WORKDIR /app
+# Add labels to the image to filter out if we have multiple application running
+LABEL app=bankapp
 
-# Copy source code to container
-COPY . /app
+# Set working directory
+WORKDIR /src
 
-# Build application, skip tests
-RUN mvn clean package -DskipTests=true
+# Copy source code from local to container
+COPY . /src
+
+# Build application and skip test cases
+RUN mvn clean install -DskipTests=true
 
 #--------------------------------------
-# Stage 2: Run the Spring Boot app
+# Stage 2
 #--------------------------------------
 
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:17
+# Import small size java image
+FROM openjdk:17-alpine as deployer
 
-WORKDIR /app
+# Copy build from stage 1 (builder)
+COPY --from=builder /src/target/*.jar /src/target/bankapp.jar
 
-# Copy jar from builder stage
-COPY --from=builder /app/target/*.jar app.jar
-
-# Expose port
+# Expose application port 
 EXPOSE 8080
 
-# Run the app
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Start the application
+ENTRYPOINT ["java", "-jar", "/src/target/bankapp.jar"]
