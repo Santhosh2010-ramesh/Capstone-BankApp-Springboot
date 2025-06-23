@@ -55,6 +55,7 @@ phases:
       - echo Building Docker image...
       - docker build -t capstone_ecr .
       - docker tag capstone_ecr:latest 047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr:latest
+      
 
   post_build:
     commands:
