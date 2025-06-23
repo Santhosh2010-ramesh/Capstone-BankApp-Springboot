@@ -11,6 +11,9 @@ WORKDIR /app
 # Copy source code into container
 COPY . /app
 
+# Fix mvnw permission
+RUN chmod +x mvnw
+
 # Build the app (skip tests)
 RUN ./mvnw clean install -DskipTests
 
