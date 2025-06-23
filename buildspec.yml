@@ -71,6 +71,7 @@ phases:
       - ls -l k8s-out
 
       - echo Deploying to Kubernetes...
+      - kubectl apply -f kubernetes/bankapp-namespace.yaml
       - kubectl apply -f kubernetes/bankapp-deployment.yml
       - kubectl apply -f kubernetes/bankapp-service.yaml
       - echo Deployment to Kubernetes complete.
