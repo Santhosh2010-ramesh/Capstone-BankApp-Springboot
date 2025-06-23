@@ -28,7 +28,7 @@ phases:
       - echo "Pushing Docker images to ECR..."
       - docker push ${REPO_URI}:${IMAGE_TAG}
       - docker push ${REPO_URI}:latest
-      - echo "Deploying to Kubernetes Cluster..."
+      - echo "Updating Kubernetes deployment..."
       - aws eks update-kubeconfig --region us-east-1 --name Capstone-cluster
       - sed -i "s|image: .*|image: ${REPO_URI}:${IMAGE_TAG}|" kubernetes/bankapp-deployment.yaml
       - kubectl apply -f kubernetes/bankapp-namespace.yaml
