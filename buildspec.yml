@@ -6,10 +6,10 @@ phases:
       - echo "Logging into Amazon ECR..."
       - aws --version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 047719652562.dkr.ecr.us-east-1.amazonaws.com
-      - 'IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)'
-      - 'echo "Image Tag: $IMAGE_TAG"'
-      - 'REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr'
-      
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo "Image Tag: $IMAGE_TAG"
+      - REPO_URI=047719652562.dkr.ecr.us-east-1.amazonaws.com/capstone_ecr
+
       - echo "Installing SonarQube Scanner..."
       - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
       - unzip -q sonar-scanner.zip
@@ -19,7 +19,7 @@ phases:
     commands:
       - echo "Running SonarQube Analysis..."
       - sonar-scanner -Dsonar.projectKey=New_Capstone -Dsonar.sources=. -Dsonar.java.binaries=target/classes -Dsonar.host.url=http://52.87.101.241:9000 -Dsonar.login=sqp_39d1f3d9519e997ef336a9887f58a289df734506
-      
+
       - echo "Building Docker image..."
       - mvn clean package -DskipTests
       - docker build -t ${REPO_URI}:${IMAGE_TAG} .
