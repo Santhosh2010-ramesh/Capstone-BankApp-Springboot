@@ -1,5 +1,6 @@
 # Use a full JDK image with Maven + Java 17
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:17-alpine
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:17
+
 
 # Maintainer
 LABEL maintainer="Santhosh <santhoshramesh2010@gmail.com>"
